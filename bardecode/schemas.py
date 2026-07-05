@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -26,7 +25,7 @@ class ImageResult:
     height: int
     barcodes: list[DecodedBarcode] = field(default_factory=list)
     undecoded: list[dict] = field(default_factory=list)
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass

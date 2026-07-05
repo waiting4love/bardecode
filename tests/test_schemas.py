@@ -30,3 +30,20 @@ def test_report_round_trip():
     r = Report(tool="bardecode", version="0.1.0", results=[])
     assert r.tool == "bardecode"
     assert r.results == []
+
+
+def test_image_result_defaults_are_independent():
+    a = ImageResult(image="a", width=0, height=0)
+    b = ImageResult(image="b", width=0, height=0)
+    a.barcodes.append(DecodedBarcode("X", "1", [0, 0, 0, 0], 1.0))
+    a.undecoded.append({"bbox": [0, 0, 1, 1], "detection_score": 0.5})
+    # Two instances must not share mutable defaults
+    assert b.barcodes == []
+    assert b.undecoded == []
+
+
+def test_report_defaults_are_independent():
+    a = Report(tool="bardecode", version="0.1.0")
+    b = Report(tool="bardecode", version="0.1.0")
+    a.results.append(ImageResult(image="x", width=0, height=0))
+    assert b.results == []
