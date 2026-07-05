@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from .schemas import Report
+from .schemas import Report, ImageResult
 
 
 def read_image(path: str) -> np.ndarray:
@@ -25,7 +25,7 @@ def _read_via_pillow(path: str) -> np.ndarray | None:
         return None
 
 
-def format_report_json(report, quiet: bool = False) -> str:
+def format_report_json(report: Report, quiet: bool = False) -> str:
     if quiet:
         lines = []
         for ir in report.results:
@@ -35,7 +35,7 @@ def format_report_json(report, quiet: bool = False) -> str:
     return json.dumps(_report_to_dict(report), ensure_ascii=False, indent=2)
 
 
-def _report_to_dict(report) -> dict:
+def _report_to_dict(report: Report) -> dict:
     return {
         "tool": report.tool,
         "version": report.version,
@@ -43,7 +43,7 @@ def _report_to_dict(report) -> dict:
     }
 
 
-def _image_result_to_dict(ir) -> dict:
+def _image_result_to_dict(ir: ImageResult) -> dict:
     return {
         "image": ir.image,
         "width": ir.width,

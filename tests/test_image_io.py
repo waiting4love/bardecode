@@ -1,5 +1,10 @@
+import json
+
 import pytest
-from bardecode.image_io import read_image
+from bardecode.image_io import format_report_json, read_image
+from bardecode.schemas import (
+    DecodedBarcode, ImageResult, Report
+)
 
 
 def test_read_png(png_image):
@@ -26,13 +31,6 @@ def test_read_image_uses_pillow_fallback(monkeypatch, png_image):
     img = read_image(png_image)
     assert img is not None
     assert img.shape == (100, 100, 3)
-
-
-import json
-from bardecode.image_io import format_report_json
-from bardecode.schemas import (
-    DecodedBarcode, ImageResult, Report
-)
 
 
 def test_json_empty_report():
