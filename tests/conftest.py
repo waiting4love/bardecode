@@ -30,3 +30,13 @@ def webp_image(tmp_path):
     p = tmp_path / "test.webp"
     Image.fromarray(arr).save(p, format="WEBP")
     return str(p)
+
+
+@pytest.fixture
+def synthetic_ean13_image(tmp_path):
+    """生成含 EAN-13 条码的合成图。"""
+    import barcode
+    from barcode.writer import ImageWriter
+    ean = barcode.get("ean13", "4006381333917", writer=ImageWriter())
+    fn = ean.save(str(tmp_path / "ean13"))
+    return fn
