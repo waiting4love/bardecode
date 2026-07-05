@@ -12,7 +12,7 @@ def read_image(path: str) -> np.ndarray:
     return img
 
 
-def _read_via_pillow(path: str):
+def _read_via_pillow(path: str) -> np.ndarray | None:
     try:
         pil = Image.open(path).convert("RGB")
         arr = np.array(pil)[:, :, ::-1].copy()

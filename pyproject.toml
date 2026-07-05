@@ -8,6 +8,7 @@ dependencies = [
     "zxing-cpp>=2.0",
     "opencv-python-headless>=4.8",
     "numpy>=1.24",
+    "Pillow>=10.0",
 ]
 
 [project.scripts]
@@ -17,7 +18,6 @@ bardecode = "bardecode.__main__:main"
 dev = [
     "pytest>=8.0",
     "python-barcode>=0.14",
-    "Pillow>=10.0",
 ]
 
 [build-system]
