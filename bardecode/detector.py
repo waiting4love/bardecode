@@ -104,6 +104,8 @@ class BarcodeDetector:
             y1 = max(0, min(y1, h - 1))
             x2 = max(0, min(x2, w - 1))
             y2 = max(0, min(y2, h - 1))
+            if x2 <= x1 or y2 <= y1:
+                continue
             out.append(Detection(x1=x1, y1=y1, x2=x2, y2=y2, score=d.score))
         return out
 
@@ -112,4 +114,4 @@ class BarcodeDetector:
         rgb = boxed[:, :, ::-1]
         norm = rgb.astype(np.float32) / 255.0
         nchw = norm.transpose(2, 0, 1)[None, ...]
-        return nchw
+        return np.ascontiguousarray(nchw)

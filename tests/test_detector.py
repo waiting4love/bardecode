@@ -1,5 +1,8 @@
 import numpy as np
-from bardecode.detector import letterbox, postprocess
+import pytest
+
+from bardecode.detector import letterbox, postprocess, BarcodeDetector
+from bardecode.image_io import read_image
 
 
 def test_letterbox_no_resize_needed():
@@ -129,10 +132,6 @@ def test_postprocess_nms_uses_top_left_xywh():
     assert abs(dets[0].score - 0.90) < 1e-5
 
 
-import pytest
-from bardecode.detector import BarcodeDetector
-
-
 @pytest.fixture
 def detector():
     return BarcodeDetector()
@@ -140,16 +139,18 @@ def detector():
 
 @pytest.mark.slow
 def test_detector_finds_barcode_in_synthetic(detector, synthetic_ean13_image):
-    from bardecode.image_io import read_image
     img = read_image(synthetic_ean13_image)
     dets = detector.detect(img)
     assert len(dets) >= 1
     assert all(d.score > 0.25 for d in dets)
+    h, w = img.shape[:2]
+    for d in dets:
+        assert 0 <= d.x1 < d.x2 <= w
+        assert 0 <= d.y1 < d.y2 <= h
 
 
 @pytest.mark.slow
 def test_detector_empty_on_blank(detector, blank_image):
-    from bardecode.image_io import read_image
     img = read_image(blank_image)
     dets = detector.detect(img)
     assert dets == []
