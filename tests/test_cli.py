@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _run(args, **kw):
     return subprocess.run(
@@ -44,9 +46,6 @@ def test_cli_json_structure_on_blank(blank_image):
     assert data["results"][0]["error"] is None
 
 
-import pytest
-
-
 @pytest.mark.slow
 def test_cli_real_image():
     """使用用户提供的真实 webp 图。"""
@@ -58,3 +57,13 @@ def test_cli_real_image():
     data = json.loads(r.stdout)
     total = sum(len(ir["barcodes"]) for ir in data["results"])
     assert total >= 1, f"expected at least 1 barcode, got {data}"
+
+
+def test_cli_mixed_batch_exit_code_and_results(blank_image, tmp_path):
+    r = _run([blank_image, str(tmp_path / "nope.png")])
+    assert r.returncode == 2
+    data = json.loads(r.stdout)
+    assert len(data["results"]) == 2
+    errors = [ir["error"] for ir in data["results"]]
+    assert None in errors               # blank succeeded
+    assert "file not found" in errors   # missing failed

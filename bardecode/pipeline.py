@@ -87,6 +87,15 @@ def process_image(
             # Remove overlapping undecoded entries (we now have the decoded version)
             undecoded = [u for u in undecoded if _iou(tuple(u["bbox"]), fb_bbox) <= 0.5]
 
+    seen = set()
+    deduped = []
+    for b in barcodes:
+        key = (b.format, b.text, tuple(b.bbox))
+        if key not in seen:
+            seen.add(key)
+            deduped.append(b)
+    barcodes = deduped
+
     return ImageResult(
         image=path, width=w, height=h,
         barcodes=barcodes, undecoded=undecoded, error=None,

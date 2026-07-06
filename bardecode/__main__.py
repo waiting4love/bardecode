@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -49,6 +49,8 @@ def main(argv=None) -> int:
             ir = ImageResult(image=path, width=0, height=0, barcodes=[],
                              undecoded=[], error=f"unexpected: {e}")
         results.append(ir)
+        if args.verbose:
+            print(f"[bardecode] {path}: {len(ir.barcodes)} decoded, {len(ir.undecoded)} undetected, error={ir.error}", file=sys.stderr)
         if ir.error == "file not found":
             exit_code = max(exit_code, 2)
         elif ir.error:
