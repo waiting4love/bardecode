@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import onnxruntime as ort
+from importlib import resources
 
 from .schemas import Detection
 
@@ -69,3 +71,45 @@ def postprocess(raw_output: np.ndarray, conf_thres: float = 0.25, iou_thres: flo
 def _cxcywh_to_xyxy(b: np.ndarray) -> np.ndarray:
     cx, cy, w, h = b[:, 0], b[:, 1], b[:, 2], b[:, 3]
     return np.stack([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], axis=1)
+
+
+def _default_model_path() -> str:
+    return str(resources.files("bardecode").joinpath("models", "yolov8s_barcode.onnx"))
+
+
+class BarcodeDetector:
+    def __init__(self, model_path: str | None = None, img_size: int = 640,
+                 conf_thres: float = 0.25, iou_thres: float = 0.45):
+        path = model_path or _default_model_path()
+        self.session = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
+        self.input_name = self.session.get_inputs()[0].name
+        self.img_size = img_size
+        self.conf_thres = conf_thres
+        self.iou_thres = iou_thres
+
+    def detect(self, img: np.ndarray) -> list[Detection]:
+        """img: BGR numpy array. Returns Detection list in ORIGINAL image coordinates."""
+        boxed, ratio, (pad_w, pad_h) = letterbox(img, self.img_size)
+        blob = self._preprocess(boxed)
+        raw = self.session.run(None, {self.input_name: blob})[0]
+        dets_640 = postprocess(raw, self.conf_thres, self.iou_thres)
+        h, w = img.shape[:2]
+        out = []
+        for d in dets_640:
+            x1 = int((d.x1 - pad_w) * ratio)
+            y1 = int((d.y1 - pad_h) * ratio)
+            x2 = int((d.x2 - pad_w) * ratio)
+            y2 = int((d.y2 - pad_h) * ratio)
+            x1 = max(0, min(x1, w - 1))
+            y1 = max(0, min(y1, h - 1))
+            x2 = max(0, min(x2, w - 1))
+            y2 = max(0, min(y2, h - 1))
+            out.append(Detection(x1=x1, y1=y1, x2=x2, y2=y2, score=d.score))
+        return out
+
+    @staticmethod
+    def _preprocess(boxed: np.ndarray) -> np.ndarray:
+        rgb = boxed[:, :, ::-1]
+        norm = rgb.astype(np.float32) / 255.0
+        nchw = norm.transpose(2, 0, 1)[None, ...]
+        return nchw

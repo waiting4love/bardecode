@@ -127,3 +127,29 @@ def test_postprocess_nms_uses_top_left_xywh():
     dets = postprocess(arr, conf_thres=0.25, iou_thres=0.45)
     assert len(dets) == 1  # B 应被正确抑制
     assert abs(dets[0].score - 0.90) < 1e-5
+
+
+import pytest
+from bardecode.detector import BarcodeDetector
+
+
+@pytest.fixture
+def detector():
+    return BarcodeDetector()
+
+
+@pytest.mark.slow
+def test_detector_finds_barcode_in_synthetic(detector, synthetic_ean13_image):
+    from bardecode.image_io import read_image
+    img = read_image(synthetic_ean13_image)
+    dets = detector.detect(img)
+    assert len(dets) >= 1
+    assert all(d.score > 0.25 for d in dets)
+
+
+@pytest.mark.slow
+def test_detector_empty_on_blank(detector, blank_image):
+    from bardecode.image_io import read_image
+    img = read_image(blank_image)
+    dets = detector.detect(img)
+    assert dets == []
