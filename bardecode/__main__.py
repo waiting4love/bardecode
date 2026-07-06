@@ -50,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
                              undecoded=[], error=f"unexpected: {e}")
         results.append(ir)
         if args.verbose:
-            print(f"[bardecode] {path}: {len(ir.barcodes)} decoded, {len(ir.undecoded)} undetected, error={ir.error}", file=sys.stderr)
+            print(f"[bardecode] {path}: {len(ir.barcodes)} decoded, {len(ir.undecoded)} undecoded, error={ir.error}", file=sys.stderr)
         if ir.error == "file not found":
             exit_code = max(exit_code, 2)
         elif ir.error:

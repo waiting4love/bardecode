@@ -109,7 +109,6 @@ uv run --with ultralytics --with requests python scripts/export_onnx.py
 ## 测试
 
 ```powershell
-uv run pytest                 # 跳过 slow（不加载模型）
-uv run pytest -m slow         # 含模型推理的集成测试
-uv run pytest                 # 全部
+uv run pytest                 # 全部测试（含 slow 集成测试，需加载模型）
+uv run pytest -m "not slow"   # 仅快速单元测试（不加载模型）
 ```

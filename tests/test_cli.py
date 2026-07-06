@@ -56,7 +56,7 @@ def test_cli_real_image():
     assert r.returncode == 0
     data = json.loads(r.stdout)
     total = sum(len(ir["barcodes"]) for ir in data["results"])
-    assert total >= 1, f"expected at least 1 barcode, got {data}"
+    assert total >= 2, f"expected at least 2 barcodes (multi-barcode goal), got {data}"
 
 
 def test_cli_mixed_batch_exit_code_and_results(blank_image, tmp_path):
