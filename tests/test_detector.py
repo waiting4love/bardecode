@@ -37,3 +37,23 @@ def test_letterbox_ratio_inverse():
     assert abs(ratio - (400 / 640)) < 1e-3
     assert pad_w == 0
     assert abs(pad_h - 160) < 5
+
+
+def test_letterbox_round_trip_coordinate():
+    """Verify the inverse mapping contract: original = (padded - pad) * ratio."""
+    img = np.zeros((200, 400, 3), dtype=np.uint8)
+    # Mark a known source block centered at (x=100, y=50). A small solid block
+    # is used instead of a single pixel so interior pixels stay saturated (255)
+    # after INTER_LINEAR resize; its centroid still represents (100, 50).
+    img[48:53, 98:103] = [255, 0, 0]
+    out, ratio, (pad_w, pad_h) = letterbox(img, 640)
+    # Centroid of saturated red pixels in the output
+    ys, xs = np.where(out[:, :, 0] == 255)
+    assert len(xs) > 0
+    out_x = float(xs.mean())
+    out_y = float(ys.mean())
+    # Inverse transform should recover the original coordinate within 1 pixel
+    recon_x = (out_x - pad_w) * ratio
+    recon_y = (out_y - pad_h) * ratio
+    assert abs(recon_x - 100) <= 1
+    assert abs(recon_y - 50) <= 1
