@@ -3,7 +3,7 @@ from .image_io import read_image
 from .decoder import decode_region
 
 
-def _iou(a, b) -> float:
+def _iou(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> float:
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
     ix1, iy1 = max(ax1, bx1), max(ay1, by1)
@@ -30,12 +30,9 @@ def _get_detector():
 
 def process_image(
     path: str,
-    conf_thres: float = 0.25,
-    iou_thres: float = 0.45,
-    img_size: int = 640,
     formats: list[str] | None = None,
     fallback: bool = True,
-    detector=None,
+    detector: "BarcodeDetector | None" = None,
 ) -> ImageResult:
     try:
         img = read_image(path)
@@ -80,12 +77,15 @@ def process_image(
         for r in full_results:
             xs = [p[0] for p in r.position]
             ys = [p[1] for p in r.position]
+            fb_bbox = (int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys)))
             barcodes.append(DecodedBarcode(
                 format=r.format,
                 text=r.text,
-                bbox=[int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))],
+                bbox=[fb_bbox[0], fb_bbox[1], fb_bbox[2], fb_bbox[3]],
                 detection_score=0.0,
             ))
+            # Remove overlapping undecoded entries (we now have the decoded version)
+            undecoded = [u for u in undecoded if _iou(tuple(u["bbox"]), fb_bbox) <= 0.5]
 
     return ImageResult(
         image=path, width=w, height=h,
