@@ -8,3 +8,4 @@ build/
 *.pt
 models/*.onnx.tmp
 bardecode/models/*.onnx.tmp
+.zcode/
